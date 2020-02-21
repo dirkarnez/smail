@@ -2,37 +2,34 @@ package smail
 
 import (
 	"errors"
+
 	"gopkg.in/gomail.v2"
 )
 
 type smail struct {
-	email string
+	email    string
 	password string
-	smtp string
-	port int
+	smtp     string
+	port     int
 }
 
-type Smail interface {
-	Dial() (gomail.SendCloser, error)
-	Send(gomail.Sender, string) error
+var s *smail = nil
+
+// Dial dials and authenticates to an SMTP server. The returned gomail.SendCloser should be closed when done using it.
+func Dial(email, password, smtp string, port int) (gomail.SendCloser, error) {
+	s = &smail{email, password, smtp, port}
+	return gomail.NewDialer(s.smtp, s.port, s.email, s.password).Dial()
 }
 
-func NewSmail(email, password, smtp string, port int) Smail {
-    return &smail{email, password, smtp, port}
-}
-
-func (smail *smail) Dial() (gomail.SendCloser, error) {
-	return gomail.NewDialer(smail.smtp, smail.port, smail.email, smail.password).Dial()
-}
-
-func (smail *smail) Send(sender gomail.Sender, subject string) error {
+// Send sends emails using the given Sender.
+func Send(sender gomail.Sender, subject string) error {
 	if sender == nil {
 		return errors.New("sender is nil")
 	}
 
-	m := gomail.NewMessage()
-	m.SetHeader("From", smail.email)
-	m.SetHeader("To", smail.email)
-	m.SetHeader("Subject", subject)
-	return gomail.Send(sender, m)
+	message := gomail.NewMessage()
+	message.SetHeader("From", s.email)
+	message.SetHeader("To", s.email)
+	message.SetHeader("Subject", subject)
+	return gomail.Send(sender, message)
 }
