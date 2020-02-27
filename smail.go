@@ -22,7 +22,7 @@ func Dial(email, password, smtp string, port int) (gomail.SendCloser, error) {
 }
 
 // Send sends emails using the given Sender.
-func Send(sender gomail.Sender, subject string) error {
+func Send(sender gomail.Sender, subject, body string) error {
 	if sender == nil {
 		return errors.New("sender is nil")
 	}
@@ -31,5 +31,6 @@ func Send(sender gomail.Sender, subject string) error {
 	message.SetHeader("From", s.email)
 	message.SetHeader("To", s.email)
 	message.SetHeader("Subject", subject)
+	message.SetBody("text/plain", body)
 	return gomail.Send(sender, message)
 }
